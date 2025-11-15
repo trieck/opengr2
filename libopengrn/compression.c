@@ -1,7 +1,7 @@
 /*!
-	Project: libopengrn
-	File: compression.h
-	Compression/Decompression API
+    Project: libopengrn
+    File: compression.h
+    Compression/Decompression API
 
     Oodle1 compression code is derived from https://github.com/Arbos/nwn2mdk/blob/master/nwn2mdk-lib/gr2_decompress.cpp
 
@@ -16,13 +16,13 @@
 #include <memory.h>
 
 /*!
-	Gets the extra bytes that needs to be allocated for the specific compression
-	@param nType the compression type
-	@return the extra bytes to allocate
+    Gets the extra bytes that needs to be allocated for the specific compression
+    @param nType the compression type
+    @return the extra bytes to allocate
 */
 int Compression_GetExtraLen(uint32_t nType)
 {
-	return (nType == COMPRESSION_TYPE_OODLE0 || nType == COMPRESSION_TYPE_OODLE1) ? 4 : 0;
+    return (nType == COMPRESSION_TYPE_OODLE0 || nType == COMPRESSION_TYPE_OODLE1) ? 4 : 0;
 }
 
 /*!
@@ -41,8 +41,9 @@ bool Compression_UnOodle1(uint8_t* compressedData,
                           uint32_t decompressedLength,
                           uint32_t oodleStop1,
                           uint32_t oodleStop2,
-                          bool endianessMismatch) {
-    if(compressedLength == 0) {
+                          bool endianessMismatch)
+{
+    if (compressedLength == 0) {
         return true;
     }
 
@@ -56,14 +57,14 @@ bool Compression_UnOodle1(uint8_t* compressedData,
 
     TDecoder decoder;
     Decoder_Init(&decoder, compressedData + sizeof(parameters));
-    uint32_t steps[] = { oodleStop1, oodleStop2, decompressedLength };
+    uint32_t steps[] = {oodleStop1, oodleStop2, decompressedLength};
     uint8_t* ptr = decompressedData;
 
-    for(uint32_t i = 0; i < 3; i++) {
+    for (uint32_t i = 0; i < 3; i++) {
         TDictionary dict;
         Dictionary_Init(&dict, &parameters[i]);
 
-        while(ptr < decompressedData + steps[i]) {
+        while (ptr < decompressedData + steps[i]) {
             ptr += Dictionary_Decompress_Block(&dict, &decoder, ptr);
         }
 

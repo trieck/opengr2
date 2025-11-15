@@ -16,7 +16,8 @@
 #include <string.h>
 #include <stdint.h>
 
-typedef struct {
+typedef struct
+{
     unsigned decoded_value_max : 9;
     unsigned backref_value_max : 23;
     unsigned decoded_count : 9;
@@ -25,14 +26,16 @@ typedef struct {
     uint8_t sizes_count[4];
 } TParameter;
 
-typedef struct {
+typedef struct
+{
     uint32_t numer;
     uint32_t denom;
     uint32_t next_denom;
     uint8_t* stream;
 } TDecoder;
 
-typedef struct {
+typedef struct
+{
     uint16_t count_cap;
 
     uint16_t* ranges;
@@ -52,7 +55,8 @@ typedef struct {
     uint16_t thresh_weight_rebuild;
 } TWeighWindow;
 
-typedef struct {
+typedef struct
+{
     uint32_t decoded_size;
     uint32_t backref_size;
 
@@ -70,22 +74,23 @@ typedef struct {
     TWeighWindow* size_windows;
 } TDictionary;
 
-typedef struct {
+typedef struct
+{
     size_t index;
     uint16_t value;
 } IndexValuePair;
 
-extern void Decoder_Init(TDecoder *decoder, uint8_t* stream);
-extern uint16_t Decode(TDecoder *decoder, uint16_t max);
-extern uint16_t Commit(TDecoder *decoder, uint16_t max, uint16_t val, uint16_t err);
-extern uint16_t Decode_Commit(TDecoder *decoder, uint16_t max);
+extern void Decoder_Init(TDecoder* decoder, uint8_t* stream);
+extern uint16_t Decode(TDecoder* decoder, uint16_t max);
+extern uint16_t Commit(TDecoder* decoder, uint16_t max, uint16_t val, uint16_t err);
+extern uint16_t Decode_Commit(TDecoder* decoder, uint16_t max);
 
-extern void WeighWindow_Init(TWeighWindow *weighWindow, uint32_t maxValue, uint16_t countCap);
-extern void WeighWindow_Free(TWeighWindow *weighWindow);
-extern void WeightWindow_Rebuild_Weights(TWeighWindow *weighWindow);
-extern void WeightWindow_Rebuild_Ranges(TWeighWindow *weighWindow);
-extern IndexValuePair WeightWindow_Try_Decode(TWeighWindow *weighWindow, TDecoder *decoder);
+extern void WeighWindow_Init(TWeighWindow* weighWindow, uint32_t maxValue, uint16_t countCap);
+extern void WeighWindow_Free(TWeighWindow* weighWindow);
+extern void WeightWindow_Rebuild_Weights(TWeighWindow* weighWindow);
+extern void WeightWindow_Rebuild_Ranges(TWeighWindow* weighWindow);
+extern IndexValuePair WeightWindow_Try_Decode(TWeighWindow* weighWindow, TDecoder* decoder);
 
-extern void Dictionary_Init(TDictionary *dictionary, TParameter *parameter);
-extern uint32_t Dictionary_Decompress_Block(TDictionary *dictionary, TDecoder *decoder, uint8_t *decompressedData);
-extern void Dictionary_Free(TDictionary *dictionary);
+extern void Dictionary_Init(TDictionary* dictionary, TParameter* parameter);
+extern uint32_t Dictionary_Decompress_Block(TDictionary* dictionary, TDecoder* decoder, uint8_t* decompressedData);
+extern void Dictionary_Free(TDictionary* dictionary);

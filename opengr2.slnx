@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="gr2nfo/gr2nfo.vcxproj" Id="685bc5f7-9d21-4078-be4a-a87388428c7b" />
+  <Project Path="libopengrn/libopengrn.vcxproj" Id="955fdd32-19d7-488c-b12f-cc288a063408" />
+</Solution>
