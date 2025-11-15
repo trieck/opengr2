@@ -34,8 +34,7 @@ static bool Gr2_LoadFileInfo(TGr2* gr2, const uint8_t* data, size_t len, bool ex
     else
         memset(gr2->fileInfo.extra + 16, 0, 16);
 
-    if (len < requiredSize + sizeof(THeader))
-    {
+    if (len < requiredSize + sizeof(THeader)) {
         dbg_printf("size %zu is not enough to load header and file info");
         return false;
     }
@@ -45,28 +44,25 @@ static bool Gr2_LoadFileInfo(TGr2* gr2, const uint8_t* data, size_t len, bool ex
     if (gr2->mismatchEndianness)
         Platform_Swap1((uint8_t*)&gr2->fileInfo, sizeof(gr2->fileInfo));
 
-    if (gr2->fileInfo.fileInfoSize != requiredSize)
-    {
+    if (gr2->fileInfo.fileInfoSize != requiredSize) {
         dbg_printf("requrested size %zu does not match file info size %u", requiredSize, gr2->fileInfo.fileInfoSize);
         return false;
     }
 
-    if (gr2->fileInfo.format != 6 && gr2->fileInfo.format != 7)
-    {
+    if (gr2->fileInfo.format != 6 && gr2->fileInfo.format != 7) {
         dbg_printf("file format %u is not supported", gr2->fileInfo.format);
         return false;
     }
 
-    if (len != gr2->fileInfo.totalSize)
-    {
+    if (len != gr2->fileInfo.totalSize) {
         dbg_printf("total size of file %zu mismatched requested total size %u", len, gr2->fileInfo.totalSize);
         return false;
     }
 
-    crc = CRC32(data + gr2->fileInfo.fileInfoSize + sizeof(THeader), len - gr2->fileInfo.fileInfoSize - sizeof(THeader));
+    crc = CRC32(data + gr2->fileInfo.fileInfoSize + sizeof(THeader),
+                len - gr2->fileInfo.fileInfoSize - sizeof(THeader));
 
-    if (crc != gr2->fileInfo.crc32)
-    {
+    if (crc != gr2->fileInfo.crc32) {
         dbg_printf("Invalid CRC32 %u != %u\n", crc, gr2->fileInfo.crc32);
         return false;
     }
@@ -86,17 +82,15 @@ static void Gr2_ApplyFixUp(TGr2* gr2, uint32_t srcSector, TFixUpData* fd, bool i
     void* dst = gr2->data + gr2->sectorOffsets[fd->dstSector] + fd->dstOffset;
     void* src = gr2->data + gr2->sectorOffsets[srcSector] + fd->srcOffset;
 
-    if (is64)
-    {
+    if (is64) {
         uint64_t dstPtr = encode_ptr(&gr2->virtual_ptr, dst);
         memcpy(src, &dstPtr, sizeof(dstPtr));
-    }
-    else
-    {
+    } else {
         uint32_t dstPtr = encode_ptr(&gr2->virtual_ptr, dst);
         memcpy(src, &dstPtr, sizeof(dstPtr));
     }
 }
+
 
 /*!
     Applies marshalling fix for endianness mismatch situations
@@ -109,8 +103,7 @@ static void Gr2_ApplyMarshall(TGr2* gr2, uint32_t srcSector, TMarshallData* md, 
 
     // TODO: verify if this code is ok
 
-    for (; i < md->count; i++)
-    {
+    for (; i < md->count; i++) {
         uint8_t* swapData = (uint8_t*)gr2->data[gr2->sectorOffsets[srcSector]] + md->srcOffset;
         // TODO: t_Type from element nodes...
     }
@@ -160,14 +153,12 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
     uint64_t rootOffset = 0;
 
     /* load the magic and gr2 header */
-    if (len < sizeof(THeader))
-    {
+    if (len < sizeof(THeader)) {
         dbg_printf("file %zu is too small to have a gr2 header", len);
         return false;
     }
 
-    if (!Magic_GetFlags((const uint32_t*)data, &magicFlags))
-    {
+    if (!Magic_GetFlags((const uint32_t*)data, &magicFlags)) {
         dbg_printf("invalid magic");
         return false;
     }
@@ -194,8 +185,7 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
     if (!Gr2_LoadFileInfo(gr2, data, len, magicFlags & MAGIC_FLAG_EXTRA16))
         return false;
 
-    if (len < gr2->fileInfo.fileInfoSize + (sizeof(TSector) + gr2->fileInfo.sectorCount) + sizeof(THeader))
-    {
+    if (len < gr2->fileInfo.fileInfoSize + (sizeof(TSector) + gr2->fileInfo.sectorCount) + sizeof(THeader)) {
         dbg_printf("out of bounds");
         return false;
     }
@@ -204,25 +194,23 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
     /* allocate sector info array */
     gr2->sectors = (TSector*)malloc(sizeof(TSector) * gr2->fileInfo.sectorCount);
 
-    if (!gr2->sectors)
-    {
+    if (!gr2->sectors) {
         dbg_printf("memory allocation fail!!!");
         return false;
     }
 
     /* check for sector sizes and allocate the big sector data array (where Grn nodes exists) */
-    for (i = 0; i < gr2->fileInfo.sectorCount; i++)
-    {
+    for (i = 0; i < gr2->fileInfo.sectorCount; i++) {
         gr2->sectors[i] = *(TSector*)(data + gr2->fileInfo.fileInfoSize + sizeof(THeader) + (i * sizeof(TSector)));
 
-        if (gr2->sectors[i].compressType == COMPRESSION_TYPE_NONE && (gr2->sectors[i].decompressLen + gr2->sectors[i].dataOffset) > len)
-        {
+        if (gr2->sectors[i].compressType == COMPRESSION_TYPE_NONE && (gr2->sectors[i].decompressLen + gr2->sectors[i].
+            dataOffset) > len) {
             dbg_printf("out of bounds");
             return false;
         }
 
-        if (gr2->sectors[i].compressType != COMPRESSION_TYPE_NONE && (gr2->sectors[i].compressedLen + gr2->sectors[i].dataOffset) > len)
-        {
+        if (gr2->sectors[i].compressType != COMPRESSION_TYPE_NONE && (gr2->sectors[i].compressedLen + gr2->sectors[i].
+            dataOffset) > len) {
             dbg_printf("out of bounds");
             return false;
         }
@@ -233,33 +221,27 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
     gr2->data = (uint8_t*)malloc(gr2->dataSize);
     gr2->sectorOffsets = (size_t*)malloc(gr2->fileInfo.sectorCount * sizeof(size_t));
 
-    if (!gr2->data || !gr2->sectorOffsets)
-    {
+    if (!gr2->data || !gr2->sectorOffsets) {
         dbg_printf("memory allocation fail!!!");
         return false;
     }
 
     /* decompress the sectors and apply the required byte swapping */
-    for (i = 0; i < gr2->fileInfo.sectorCount; i++)
-    {
+    for (i = 0; i < gr2->fileInfo.sectorCount; i++) {
         TSector sector = gr2->sectors[i];
 
-        if (sector.compressType == COMPRESSION_TYPE_NONE)
-        {
+        if (sector.compressType == COMPRESSION_TYPE_NONE) {
             memcpy(gr2->data + ofs, data + sector.dataOffset, sector.decompressLen);
 
             if (gr2->mismatchEndianness)
                 Platform_Swap1(gr2->data + ofs, sector.decompressLen); /* should be done on compressed data as well */
-        }
-        else
-        {
+        } else {
             // Required for Oodle
             uint32_t extraLen = Compression_GetExtraLen(sector.compressType);
-            uint8_t* pComp = (uint8_t*)malloc(sector.compressedLen + extraLen), * pDecomp;
+            uint8_t *pComp = (uint8_t*)malloc(sector.compressedLen + extraLen), *pDecomp;
             bool success = false;
 
-            if (!pComp)
-            {
+            if (!pComp) {
                 dbg_printf("memory allocation fail!!!");
                 return false;
             }
@@ -274,8 +256,7 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
 
             pDecomp = (uint8_t*)malloc(sector.decompressLen);
 
-            switch (sector.compressType)
-            {
+            switch (sector.compressType) {
 #if 0
             case COMPRESSION_TYPE_OODLE0:
                 success = Compression_UnOodle0(pCompData, sct.compressedLen, pDecompData, cnt.info.decompressLen);
@@ -283,16 +264,18 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
 #endif
             case COMPRESSION_TYPE_OODLE0:
             case COMPRESSION_TYPE_OODLE1:
-                success = Compression_UnOodle1(pComp, sector.compressedLen, pDecomp, sector.decompressLen, sector.oodleStop0, sector.oodleStop1, gr2->mismatchEndianness);
+                success = Compression_UnOodle1(pComp, sector.compressedLen, pDecomp, sector.decompressLen,
+                                               sector.oodleStop0, sector.oodleStop1, gr2->mismatchEndianness);
                 break;
 #if 0
             case COMPRESSION_TYPE_BITKNIT1:
-                success = Compression_UnBitknit1(pCompData, cnt.info.compressedLen, pDecompData, cnt.info.decompressLen);
+                success = Compression_UnBitknit1(pCompData, cnt.info.compressedLen, pDecompData,
+                                                 cnt.info.decompressLen);
                 break;
             case COMPRESSION_TYPE_BITKNIT2:
                 success = Compression_UnBitknit2(pComp, sector.compressedLen, pDecomp, sector.decompressLen);
                 break;
-#endif 
+#endif
             default:
                 free(pDecomp);
                 free(pComp);
@@ -303,25 +286,23 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
 
             free(pComp);
 
-            if (!success)
-            {
+            if (!success) {
                 dbg_printf("decompression of %d fail", sector.compressType);
                 free(pDecomp);
                 return false;
-            }
-            else {
+            } else {
                 memcpy(gr2->data + ofs, pDecomp, sector.decompressLen);
 
                 if (gr2->mismatchEndianness)
-                    Platform_Swap1(gr2->data + ofs, sector.decompressLen); /* should be done on compressed data as well */
+                    Platform_Swap1(gr2->data + ofs, sector.decompressLen);
+                /* should be done on compressed data as well */
             }
 
             free(pDecomp);
         }
 
         /* must be done on decompressed data only */
-        if (gr2->mismatchEndianness)
-        {
+        if (gr2->mismatchEndianness) {
             Platform_Swap1(gr2->data + ofs, sector.oodleStop0);
             Platform_Swap2(gr2->data + ofs + sector.oodleStop0, sector.oodleStop1 - sector.oodleStop0);
         }
@@ -331,37 +312,31 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
     }
 
     /* read sector data to apply marshalling and fixup */
-    for (i = 0; i < gr2->fileInfo.sectorCount; i++)
-    {
+    for (i = 0; i < gr2->fileInfo.sectorCount; i++) {
         TSector sector = gr2->sectors[i];
         uint32_t k;
         size_t pos;
 
-        for (k = 0; k < sector.marshallSize; k++)
-        {
+        for (k = 0; k < sector.marshallSize; k++) {
             pos = sector.marshallOffset + (k * sizeof(TFixUpData));
 
-            if (pos > len)
-            {
+            if (pos > len) {
                 dbg_printf("out of bounds");
                 return false;
             }
 
             TMarshallData* md = (TMarshallData*)(data + pos);
 
-            if (gr2->mismatchEndianness)
-            {
+            if (gr2->mismatchEndianness) {
                 Platform_Swap1((uint8_t*)md, sizeof(TMarshallData));
                 Gr2_ApplyMarshall(gr2, i, md, data);
             }
         }
 
-        for (k = 0; k < sector.fixupSize; k++)
-        {
+        for (k = 0; k < sector.fixupSize; k++) {
             pos = sector.fixupOffset + (k * sizeof(TFixUpData));
 
-            if (pos > len)
-            {
+            if (pos > len) {
                 dbg_printf("out of bounds");
                 return false;
             }
@@ -376,5 +351,8 @@ OG_DLLAPI bool Gr2_Load(const uint8_t* data, size_t len, TGr2* gr2)
     }
 
     /* file parsing completed! begin node loading */
-    return Element_Parse(&gr2->virtual_ptr, gr2->data + gr2->sectorOffsets[gr2->fileInfo.type.sector] + gr2->fileInfo.type.position, gr2->data + gr2->sectorOffsets[gr2->fileInfo.root.sector] + gr2->fileInfo.root.position, magicFlags & MAGIC_FLAG_64BIT, &gr2->elements, gr2->root, &rootOffset);
+    return Element_Parse(&gr2->virtual_ptr,
+                         gr2->data + gr2->sectorOffsets[gr2->fileInfo.type.sector] + gr2->fileInfo.type.position,
+                         gr2->data + gr2->sectorOffsets[gr2->fileInfo.root.sector] + gr2->fileInfo.root.position,
+                         magicFlags & MAGIC_FLAG_64BIT, &gr2->elements, gr2->root, &rootOffset);
 }

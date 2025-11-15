@@ -19,7 +19,7 @@
 
 bool Element_ParsePrimitive(TDArray* vptr, TElementGeneric* elem, const uint8_t* data, uint64_t* offset, bool b64)
 {
-    uint32_t ofs = *offset;
+    uint32_t ofs = (uint32_t)*offset;
 
     switch (elem->rawInfo.type) {
     default:
@@ -81,8 +81,6 @@ bool Element_ParsePrimitive(TDArray* vptr, TElementGeneric* elem, const uint8_t*
 
     case TYPEID_STRING: // 8
     {
-        char* ptr;
-
         if (b64) {
             ((TElementString*)elem)->value = (char*)decode_ptr(vptr, *(uint64_t*)(data + ofs));
             ofs += 8;
